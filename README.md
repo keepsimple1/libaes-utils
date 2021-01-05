@@ -59,7 +59,7 @@ OPTIONS:
     -m <message>        Cipher text in BASE64
 ```
 
-## Benchmark libaes
+## Benchmark
 
 We run benchmark using `criterion` with `libaes` against `RustCrypto` crates `aes` + `block-modes`. The code is [here](benches/cbc.rs).
 
