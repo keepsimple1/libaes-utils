@@ -1,0 +1,21 @@
+[package]
+name = "libaes-utils"
+version = "0.1.0"
+authors = ["Han Xu <keepsimple@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "0.13"
+clap = "2.33"
+libaes = { git = "https://github.com/keepsimple1/libaes.git" }
+
+[dev-dependencies]
+aes = "0.6.0"
+block-modes = "0.7.0"
+criterion = "0.3"
+
+[[bench]]
+name = "cbc"
+harness = false
