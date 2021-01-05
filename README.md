@@ -61,13 +61,10 @@ OPTIONS:
 
 ## Benchmark libaes
 
-We run benchmark testing with `libaes` against `RustCrypto` crates `aes` + `block-modes`.
+We run benchmark using `criterion` with `libaes` against `RustCrypto` crates `aes` + `block-modes`. The code is [here](benches/cbc.rs).
 
-The current result on MacBook Pro Mid-2015 with Rust 1.49:
+The current result on MacBook Pro Mid-2015 with Rust 1.49, running `cargo bench`:
 
-`cargo bench`
-
-Result summary:
 ```text
 libaes 128 cbc encrypt  time:   [639.89 ns 641.24 ns 642.72 ns]
 aes-block-modes 128 cbc encrypt
