@@ -9,7 +9,7 @@ edition = "2018"
 [dependencies]
 base64 = "0.13"
 clap = "2.33"
-libaes = { git = "https://github.com/keepsimple1/libaes.git" }
+libaes = "0.6.0"
 
 [dev-dependencies]
 aes = "0.6.0"
