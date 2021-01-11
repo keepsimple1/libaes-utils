@@ -30,7 +30,7 @@ fn libaes_128_cbc_encrypt() {
 fn libaes_128_cbc_decrypt() {
     let iv = b"This is 16 bytes";
     let cipher = Cipher::new_128(SMALL_KEY);
-    let decrypted = cipher.cbc_decrypt(iv, SMALL_CIPHER_TEXT).unwrap();
+    let decrypted = cipher.cbc_decrypt(iv, SMALL_CIPHER_TEXT);
     assert_eq!(&decrypted[..], &SMALL_PLAIN_TEXT[..]);
 }
 

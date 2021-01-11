@@ -152,13 +152,7 @@ fn main() {
 
             // decrypt the cipher text
             let cipher = Cipher::new_128(key.as_bytes().try_into().unwrap());
-            let plain_bytes = match cipher.cbc_decrypt(iv.as_bytes(), &msg[..]) {
-                Ok(bytes) => bytes,
-                Err(e) => {
-                    println!("Failed: {}", e);
-                    return;
-                }
-            };
+            let plain_bytes = cipher.cbc_decrypt(iv.as_bytes(), &msg[..]);
             match std::str::from_utf8(&plain_bytes[..]) {
                 Ok(s) => println!("{}", s),
                 Err(_) => println!("Plain text is not a string, cannot print it"),
