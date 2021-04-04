@@ -1,10 +1,9 @@
 use base64::{decode, encode};
-use clap::Arg;
-use clap::SubCommand;
+use clap::{Arg, ArgGroup, SubCommand};
 use libaes::Cipher;
 use std::convert::TryInto;
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Read, Result, Write};
 
 fn main() {
     let matches = clap::App::new("lau")
@@ -28,7 +27,7 @@ fn main() {
                 )
                 .arg(
                     Arg::with_name("file")
-                        .help("file name to write cipher text")
+                        .help("file name to read plain text")
                         .short("f")
                         .takes_value(true),
                 )
@@ -36,8 +35,13 @@ fn main() {
                     Arg::with_name("message")
                         .help("plain text")
                         .short("m")
-                        .required(true)
                         .takes_value(true),
+                )
+                .group(
+                    ArgGroup::with_name("plaintext")
+                        .arg("file")
+                        .arg("message")
+                        .required(true),
                 ),
         )
         .subcommand(
@@ -61,7 +65,6 @@ fn main() {
                     Arg::with_name("file")
                         .help("file name to read cipher text")
                         .conflicts_with("message")
-                        .required(true)
                         .short("f")
                         .takes_value(true),
                 )
@@ -69,9 +72,7 @@ fn main() {
                     Arg::with_name("message")
                         .help("Cipher text in BASE64")
                         .conflicts_with("file")
-                        .required(true)
                         .short("m")
-                        .required(true)
                         .takes_value(true),
                 ),
         )
@@ -89,24 +90,15 @@ fn main() {
                 println!("iv must be 16 characters long");
                 return;
             }
-            let msg = sub_m.value_of("message").unwrap();
-            let cipher = Cipher::new_128(key.as_bytes().try_into().unwrap());
-            let cipher_bytes = cipher.cbc_encrypt(iv.as_bytes(), msg.as_bytes());
+            let key: &[u8; 16] = key.as_bytes().try_into().unwrap();
 
             if let Some(file_name) = sub_m.value_of("file") {
-                let mut file = match File::create(file_name) {
-                    Ok(f) => f,
-                    Err(e) => {
-                        println!("Failed to create file: {}", e);
-                        return;
-                    }
-                };
-                if let Err(e) = file.write_all(&cipher_bytes[..]) {
-                    println!("Failed to write file: {}", e);
-                    return;
-                }
-                println!("Cipher text written into file: {}", file_name);
+                let output = encrypt_file(file_name, key, iv.as_bytes()).unwrap();
+                println!("Cipher text written into file: {}", &output);
             } else {
+                let msg = sub_m.value_of("message").unwrap();
+                let cipher = Cipher::new_128(key);
+                let cipher_bytes = cipher.cbc_encrypt(iv.as_bytes(), msg.as_bytes());
                 println!("Cipher text in BASE64:\n{}", encode(cipher_bytes));
             }
         }
@@ -160,4 +152,31 @@ fn main() {
         }
         _ => {}
     }
+}
+
+const BLOCK_SIZE: usize = 64 * 1024;
+
+/// Returns the file name of the encrypted.
+fn encrypt_file(file_name: &str, key: &[u8; 16], iv: &[u8]) -> Result<String> {
+    let mut f = File::open(file_name)?;
+    let mut buf = [0; BLOCK_SIZE];
+
+    let out_file_name = format!("{}.encrypted", file_name);
+    let mut output_f = File::create(&out_file_name)?;
+    let cipher = Cipher::new_128(key);
+
+    loop {
+        let n = f.read(&mut buf[..])?;
+        if n == 0 {
+            break;
+        }
+        let cipher_text = cipher.cbc_encrypt(iv, &buf[..n]);
+        let n = output_f.write(&cipher_text)?;
+        if n == 0 {
+            println!("cannot write any more");
+            break;
+        }
+    }
+
+    Ok(out_file_name)
 }
